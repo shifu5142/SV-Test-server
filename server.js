@@ -6,6 +6,9 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 const { generateText, gateway } = require("ai");
 const { v4: uuidv4 } = require("uuid");
+const { ai } = require("ai");
+const { openai } = require("@ai-sdk/openai");
+const { generateText } = ai(openai);
 const movieSchema = new mongoose.Schema(
   {
     id: { type: String, required: true, unique: true },
@@ -13,7 +16,7 @@ const movieSchema = new mongoose.Schema(
     genre: { type: String, required: true, trim: true },
     description: { type: String, required: true, trim: true },
   },
-  { timestamps: true }
+  { timestamps: true },
 );
 
 const Movie = mongoose.model("Movie", movieSchema);
@@ -33,7 +36,7 @@ app.get("/", (req, res) => {
   res.json({ message: "Hello World" });
 });
 
-app.post("/add-movie", async (req, res) => {
+app.post("/AddMovie", async (req, res) => {
   try {
     const { name, genre, description } = req.body || {};
 
@@ -84,7 +87,7 @@ app.get("/all-movies", async (req, res) => {
 
 app.get("/search-movie", async (req, res) => {
   try {
-    const movies = await Movie.find().sort({ createdAt: -1 });//אני יודע בודק לפי סדר של יצירה
+    const movies = await Movie.find().sort({ createdAt: -1 }); //אני יודע בודק לפי סדר של יצירה
     return res.status(200).json(movies);
   } catch (error) {
     console.error("search-movie error:", error);
@@ -128,8 +131,51 @@ app.delete("/delete-movie", async (req, res) => {
     });
   }
 });
+app.post("/generate", async (req, res) => {
+  try {
+    const { title, genre } = req.body;
 
+    if (!title || !genre) {
+      return res.status(400).json({
+        success: false,
+        message: "title and genre are required",
+      });
+    }
 
+    const { text } = await generateText({
+      model: "openai/gpt-4o-mini",
+      prompt: `You are a creative movie description writer.
+
+      Your task:
+      Write a compelling, cinematic, and engaging movie description.
+      
+      Rules:
+      - Use a professional, Netflix-style tone
+      - 2–4 sentences only
+      - Make it exciting and emotional
+      - Do NOT mention that you are an AI
+      - Do NOT repeat the title too many times
+      - Match the mood of the genre
+      - Make it feel like a real movie synopsis
+      
+      Movie Title: ${title}
+      Genre: ${genre}
+      
+      Return only the description.
+      `,
+    });
+
+    res.json({
+      success: true,
+      plan: text,
+    });
+  } catch {
+    res.status(500).json({
+      success: false,
+      message: "Failed to generate plan",
+    });
+  }
+});
 
 app.listen(PORT, () => {
   console.log(`✅Server running at http://localhost:${PORT}/`);
