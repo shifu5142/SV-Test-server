@@ -82,6 +82,19 @@ app.get("/all-movies", async (req, res) => {
   }
 });
 
+app.get("/search-movie", async (req, res) => {
+  try {
+    const movies = await Movie.find().sort({ createdAt: -1 });//אני יודע בודק לפי סדר של יצירה
+    return res.status(200).json(movies);
+  } catch (error) {
+    console.error("search-movie error:", error);
+    return res.status(500).json({
+      success: false,
+      error: "Failed to fetch movies",
+    });
+  }
+});
+
 app.delete("/delete-movie", async (req, res) => {
   try {
     const { movieId } = req.body || {};
