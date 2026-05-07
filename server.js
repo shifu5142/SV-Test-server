@@ -52,12 +52,14 @@ app.post("/add-movie", async (req, res) => {
 
     return res.status(201).json({
       message: "Movie added successfully",
+      success: true,
       movie,
     });
   } catch (error) {
     console.error("add-movie error:", error);
     return res.status(500).json({
       error: "Failed to add movie",
+      success: false,
     });
   }
 });
