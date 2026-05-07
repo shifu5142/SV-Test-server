@@ -64,6 +64,24 @@ app.post("/add-movie", async (req, res) => {
   }
 });
 
+app.get("/movies", async (req, res) => {
+  try {
+    const movies = await Movie.find().sort({ createdAt: -1 });
+
+    return res.status(200).json({
+      success: true,
+      count: movies.length,
+      movies,
+    });
+  } catch (error) {
+    console.error("get-movies error:", error);
+    return res.status(500).json({
+      success: false,
+      error: "Failed to fetch movies",
+    });
+  }
+});
+
 app.listen(PORT, () => {
   console.log(`✅Server running at http://localhost:${PORT}/`);
 });
