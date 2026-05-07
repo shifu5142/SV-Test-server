@@ -64,7 +64,7 @@ app.post("/add-movie", async (req, res) => {
   }
 });
 
-app.get("/movies", async (req, res) => {
+app.get("/all-movies", async (req, res) => {
   try {
     const movies = await Movie.find().sort({ createdAt: -1 });
 
@@ -81,6 +81,42 @@ app.get("/movies", async (req, res) => {
     });
   }
 });
+
+app.delete("/delete-movie", async (req, res) => {
+  try {
+    const { movieId } = req.body || {};
+
+    if (!movieId) {
+      return res.status(400).json({
+        success: false,
+        error: "movieId is required",
+      });
+    }
+
+    const deletedMovie = await Movie.findByIdAndDelete(movieId);
+
+    if (!deletedMovie) {
+      return res.status(404).json({
+        success: false,
+        error: "Movie not found",
+      });
+    }
+
+    return res.status(200).json({
+      success: true,
+      message: "Movie deleted successfully",
+      deletedMovie,
+    });
+  } catch (error) {
+    console.error("delete-movie error:", error);
+    return res.status(500).json({
+      success: false,
+      error: "Failed to delete movie",
+    });
+  }
+});
+
+
 
 app.listen(PORT, () => {
   console.log(`✅Server running at http://localhost:${PORT}/`);
